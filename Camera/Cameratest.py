@@ -153,6 +153,13 @@ while (1):
             dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
             dimA = dA *scaleA + cx
             dimB = dB *scaleB + cy
+            
+            if((dimA<MinX)and(dimB<MaxY)):
+                DimAA = dimA + 0.2
+                DimBB = dimB + 0.2
+            if((dimA>MinX) and (dimB>MaxY)):
+                DimAA = dimA - 0.2
+                DimBB = dimB - 0.2
 
 
             if (( dimA>=MinX) and (dimA <= MaxY) and ( dimB>=MinX) and (dimB <=MaxY)) :
