@@ -39,8 +39,8 @@ NorR= 15.42 # 15.50 +/- 0.3
 MaxY= 15.65 #-0.026854364
 piccount=1
 b=0
-N=1
-F=1
+N=0
+F=0
 WIDTH = 640.
 Orw=300.01
 debugmode=16|8 #(16|8|4|2|1)  #F_ERGB show Final, Edged, Red, Green, Blue 
@@ -153,16 +153,15 @@ while (1):
             dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
             dimA = dA *scaleA + cx
             dimB = dB *scaleB + cy
-            
+
             if((dimA<MinX)and(dimB<MaxY)):
                 DimAA = dimA + 0.2
                 DimBB = dimB + 0.2
-            if((dimA>MinX) and (dimB>MaxY)):
+            if((dimA>MinX)and(dimB>MaxY)):
                 DimAA = dimA - 0.2
                 DimBB = dimB - 0.2
 
-
-            if (( dimA>=MinX) and (dimA <= MaxY) and ( dimB>=MinX) and (dimB <=MaxY)) :
+            if (( DimAA>=MinX) and (DimAA <= MaxY) and ( DimBB>=MinX) and (DimBB <=MaxY)):
                 a=3
                 b=1
                 okng=1
@@ -204,7 +203,8 @@ while (1):
             
             
             if(okng==0):
-                
+
+                N = N+1
                 orig = image0.copy()
                 box = cv2.minAreaRect(c)
                 box = cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
@@ -233,9 +233,7 @@ while (1):
                 dimA = dA *scaleA + cx
                 dimB = dB *scaleB + cy
                 
-                if(b==1):
-                    
-                    N = N+1
+                
 
                 cv2.putText(orig, "X {:.2f} mm.".format(dimA),
                         (int(20), int(60)), cv2.FONT_HERSHEY_SIMPLEX,
