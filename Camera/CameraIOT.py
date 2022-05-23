@@ -89,7 +89,6 @@ while (1):
         continue
 
     if(a==2):
-
         with PiCamera() as camera:
             resolution = (2592,1944)
             rawCapture = PiRGBArray(camera, size=(2592, 1944))
