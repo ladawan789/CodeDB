@@ -1,28 +1,13 @@
-from os import write
-from numpy.lib.function_base import quantile
 from picamera import PiCamera
 import cv2
-import statistics 
 import numpy as np
-import picamera 
+import RPi.GPIO as GPIO 
 from  picamera.array  import PiRGBArray
-from time import sleep
 from scipy.spatial import distance as dist
 from imutils import perspective
 from imutils import contours
 import imutils
-from fractions import Fraction
 import time
-import RPi.GPIO as GPIO 
-from gpiozero import Button
-from datetime import datetime
-import pandas as pd
-import datetime
-import psutil
-import requests
-import csv
-import paho.mqtt.publish as publish
-
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM) 
@@ -33,25 +18,7 @@ GPIO.setup(18, GPIO.OUT)
 GPIO.output(18,GPIO.LOW) # Initial "Ok" low to inactive 
 GPIO.output(13,GPIO.LOW)
 
-#Begin of Setup Parameter 
-MinX= 15.20 #+0.026854364
-NorR= 15.42 # 15.50 +/- 0.3 
-MaxY= 15.65 #-0.026854364
-piccount=1
-b=0
-N=0
-F=0
-WIDTH = 640.
-Orw=300.01
-debugmode=16|8 #(16|8|4|2|1)  #F_ERGB show Final, Edged, Red, Green, Blue 
-
-
-hostname = "10.11.1.71"
-port = 1883
-auth = {
- 'username':'admin',
- 'password':'CL@333/6'
-}
+F = 0
 
 #scaling factor 
 scaleA =26.10/484.368145113 
@@ -154,26 +121,6 @@ while (1):
             dimA = dA *scaleA + cx
             dimB = dB *scaleB + cy
 
-            if((dimA<MinX)and(dimB<MaxY)):
-                DimAA = dimA + 0.2
-                DimBB = dimB + 0.2
-            if((dimA>MinX)and(dimB>MaxY)):
-                DimAA = dimA - 0.2
-                DimBB = dimB - 0.2
-
-            if (( DimAA>=MinX) and (DimAA <= MaxY) and ( DimBB>=MinX) and (DimBB <=MaxY)):
-                a=3
-                b=1
-                okng=1
-
-            piccount = piccount+1
-
-            
-            if(okng==1):
-                
-                F = F+1
-            
-
             cv2.putText(orig, "X {:.2f} mm.".format(dimA),
                 (int(20), int(60)), cv2.FONT_HERSHEY_SIMPLEX,
 				2, (0, 255, 0), 4)
@@ -185,99 +132,6 @@ while (1):
             cv2.putText(orig,"OK:" + str(F),
                 (int(900), int(600)), cv2.FONT_HERSHEY_SIMPLEX,
 				0.65, (0, 255, 0), 2)
-            
-            if (a==3):
-                a=4
-                GPIO.output(13,GPIO.HIGH)
-                print("Ok")
-                time.sleep(0.5)
-                pass
-            
-            if (a==4):
-                GPIO.output(13,GPIO.LOW) 
-                a=0
-                continue
-
-            
-
-            
-            
-            if(okng==0):
-
-                N = N+1
-                orig = image0.copy()
-                box = cv2.minAreaRect(c)
-                box = cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
-                box = np.array(box, dtype="int")
-                box = perspective.order_points(box)
-                cv2.drawContours(orig, [box.astype("int")], -1, (0, 0, 255), 2)
-                
-                for (x, y) in box:
-                        cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
-            
-                (tl, tr, br, bl) = box
-                (tltrX, tltrY) = midpoint(tl, tr)
-                (blbrX, blbrY) = midpoint(bl, br)
-                (tlblX, tlblY) = midpoint(tl, bl)
-                (trbrX, trbrY) = midpoint(tr, br)
-                cv2.circle(orig, (int(tltrX), int(tltrY)), 5, (0, 0, 255), -1)
-                cv2.circle(orig, (int(blbrX), int(blbrY)), 5, (0, 0, 255), -1)
-                cv2.circle(orig, (int(tlblX), int(tlblY)), 5, (0, 0, 255), -1)
-                cv2.circle(orig, (int(trbrX), int(trbrY)), 5, (0, 0, 255), -1)
-                cv2.line(orig, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)),
-			        (0, 0, 255), 2)
-                cv2.line(orig, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)),
-			        (0, 0, 255), 2)
-                dA = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
-                dB = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
-                dimA = dA *scaleA + cx
-                dimB = dB *scaleB + cy
-                
-                
-
-                cv2.putText(orig, "X {:.2f} mm.".format(dimA),
-                        (int(20), int(60)), cv2.FONT_HERSHEY_SIMPLEX,
-				        2, (0, 0, 255), 4)
-
-                cv2.putText(orig, "Y {:.2f} mm.".format(dimB),
-                        (int(20), int(140)), cv2.FONT_HERSHEY_SIMPLEX,
-				        2, (0, 0, 255), 4)
-                cv2.putText(orig,"NG:" + str(N),
-                        (int(900), int(600)), cv2.FONT_HERSHEY_SIMPLEX,
-				        0.65, (0, 0, 255), 2)
-
-        q=q+1
-
         cv2.imshow("image",orig)
         cv2.waitKey(1000)
         piccount=piccount+1
-        if(s==0):
-            MinS=('%.2f'%dimA)
-            MaxS=('%.2f'%dimB)
-
-            publish.single("mynew/test",payload=MinS, hostname=hostname, port=port, auth=auth)
-            time.sleep(0.5)
-            publish.single("mynon/test",payload=MaxS, hostname=hostname, port=port, auth=auth)
-            print("Sending 1...")
-            time.sleep(0.5)
-            
-
-            
-        if(okng==0):
-            a=5
-            continue
-        
-
-    
-    if (a==5):
-        GPIO.output(18,GPIO.HIGH) 
-        a=6
-        sleep(0.25)
-        continue 
-    if (a==6):
-        GPIO.output(18,GPIO.LOW) 
-        a=0
-        continue
-    GPIO.cleanup()
-
-    
