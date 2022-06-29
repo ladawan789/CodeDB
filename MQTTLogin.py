@@ -4,8 +4,8 @@ import mysql.connector
 import paho.mqtt.publish as publish
 
 db = mysql.connector.connect(
-  host="10.11.16.66",
-  user="IOT_1",
+  host="localhost",
+  user="root",
   passwd="SnccOOling",
   database="attendance_system"
 )
